@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>3D Barrier Playground — Vertical Clearance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800;900&family=JetBrains+Mono:wght@400;500;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080e1a;
+  --surface: #0d1628;
+  --panel: #101c31;
+  --panel-h: #162440;
+  --border: rgba(56,189,248,0.11);
+  --border-hi: rgba(56,189,248,0.3);
+  --text: #e6edf5;
+  --muted: #7080a0;
+  --accent: #38bdf8;
+  --accent-d: rgba(56,189,248,0.13);
+  --safe: #34d399;
+  --safe-d: rgba(52,211,153,0.13);
+  --danger: #f43f5e;
+  --danger-d: rgba(244,63,94,0.13);
+  --terrain: #d4874a;
+  --rough: #e11d48;
+  --barrier: #38bdf8;
+  --apex: #fb7185;
+  --vertical: #86efac;
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+
+body {
+  min-height:100vh;
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse 55% 38% at 8% 0%, rgba(56,189,248,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 45% 32% at 92% 100%, rgba(251,113,133,0.05) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg width='48' height='48' viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='24' cy='24' r='0.7' fill='%2338bdf8' fill-opacity='0.06'/%3E%3C/svg%3E");
+  color: var(--text);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  padding: 18px;
+}
+
+.app {
+  width: min(1520px,100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 292px 1fr;
+  gap: 13px;
+  align-items: start;
+}
+
+/* ─── SIDEBAR ─────────────────────────────────── */
+.sidebar {
+  display:flex;
+  flex-direction:column;
+  gap: 9px;
+  position: sticky;
+  top: 18px;
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.sidebar::-webkit-scrollbar { display:none; }
+
+.brand {
+  padding: 17px 15px 15px;
+  background: linear-gradient(145deg, rgba(56,189,248,0.09) 0%, rgba(251,113,133,0.04) 100%);
+  border: 1px solid var(--border-hi);
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+}
+.brand::after {
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:1px;
+  background: linear-gradient(90deg, transparent, rgba(56,189,248,0.5), transparent);
+}
+.brand h1 {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #fff;
+  line-height: 1.2;
+  margin-bottom: 7px;
+}
+.brand-sub {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.brand-sub b { color: var(--accent); font-weight: 600; }
+
+/* stepper */
+.stepper-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px 11px;
+}
+.sec-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+  padding-left: 2px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.sec-label::before {
+  content:'';
+  width: 12px; height: 1.5px;
+  background: var(--accent);
+  opacity: 0.6;
+}
+.stepper { display:flex; flex-direction:column; gap:3px; }
+
+.step-btn {
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  width:100%;
+  background:none;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  padding: 8px 10px;
+  cursor:pointer;
+  text-align:left;
+  transition: all 0.17s ease;
+  color: var(--muted);
+}
+.step-btn:hover { background: rgba(56,189,248,0.06); border-color: rgba(56,189,248,0.14); color: var(--text); }
+.step-btn.active { background: linear-gradient(135deg,rgba(56,189,248,0.15),rgba(56,189,248,0.05)); border-color: rgba(56,189,248,0.42); color: var(--text); }
+
+.step-num {
+  width:24px; height:24px;
+  border-radius:50%;
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid rgba(255,255,255,0.14);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: all 0.17s ease;
+  color: var(--muted);
+}
+.step-btn.active .step-num {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #000;
+  box-shadow: 0 0 10px rgba(56,189,248,0.45);
+}
+.step-title {
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Exo 2', sans-serif;
+  line-height: 1.2;
+}
+.step-desc {
+  font-size: 10.5px;
+  color: var(--muted);
+  line-height: 1.3;
+  margin-top: 1px;
+}
+.step-btn.active .step-desc { color: rgba(56,189,248,0.65); }
+
+/* collapsible groups */
+.group-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.group-hdr {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 10px 13px;
+  cursor:pointer;
+  user-select:none;
+  transition: background 0.14s;
+}
+.group-hdr:hover { background: var(--panel-h); }
+.group-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+.group-name::before {
+  content:'';
+  width: 12px; height:1.5px;
+  background: var(--accent);
+  opacity:0.6;
+}
+.chev {
+  width:13px; height:13px;
+  color: var(--muted);
+  transition: transform 0.24s ease;
+  flex-shrink:0;
+}
+.group-card.closed .chev { transform: rotate(-90deg); }
+
+.group-body {
+  padding: 3px 13px 11px;
+  overflow:hidden;
+  transition: max-height 0.3s ease, opacity 0.22s ease, padding 0.25s ease;
+}
+.group-card.closed .group-body {
+  max-height: 0 !important;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* sliders */
+.sl-row { margin: 7px 0; }
+.sl-lbl {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom: 4px;
+}
+.sl-name { font-size: 11.5px; color: var(--muted); font-weight: 400; }
+.sl-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  color: var(--accent);
+  font-weight: 700;
+  min-width:54px;
+  text-align:right;
+}
+input[type="range"] {
+  width:100%;
+  -webkit-appearance:none;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.09);
+  outline:none;
+  cursor:pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance:none;
+  width:13px;height:13px;
+  border-radius:50%;
+  background: var(--accent);
+  box-shadow: 0 0 7px rgba(56,189,248,0.5);
+  cursor:pointer;
+  transition: transform 0.14s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform:scale(1.3); }
+
+/* checkboxes */
+.check-row {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding: 4.5px 5px;
+  border-radius:7px;
+  cursor:pointer;
+  transition: background 0.12s;
+}
+.check-row:hover { background: rgba(255,255,255,0.03); }
+.check-row input[type="checkbox"] {
+  width:14px; height:14px;
+  accent-color: var(--accent);
+  cursor:pointer;
+  flex-shrink:0;
+}
+.check-row span { font-size: 11.5px; color: var(--muted); }
+
+/* kbd hint */
+.kbd-hint {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px dashed rgba(255,255,255,0.1);
+  border-radius: 11px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor:pointer;
+  transition: all 0.15s;
+}
+.kbd-hint:hover { background: var(--accent-d); border-color: var(--border-hi); color: var(--text); }
+kbd {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 1px 5px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.17);
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  color: var(--text);
+}
+
+/* ─── MAIN ────────────────────────────────────── */
+.main {
+  display:flex;
+  flex-direction:column;
+  gap: 11px;
+}
+
+.canvas-card {
+  background: linear-gradient(170deg, #0c1829, #080e1a);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.c-header {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  padding: 14px 16px 10px;
+  gap:12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.stage-title {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  color:#fff;
+  line-height:1.2;
+  margin-bottom:3px;
+}
+.stage-note {
+  font-size: 12px;
+  color: var(--muted);
+  line-height:1.45;
+  max-width: 580px;
+}
+.legend {
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  justify-content:flex-end;
+  flex-shrink:0;
+}
+.pill {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius:999px;
+  padding: 3.5px 9px;
+  font-size: 11px;
+  color: var(--muted);
+  white-space:nowrap;
+}
+.dot { width:7px;height:7px;border-radius:50%; }
+.dot.terrain{background:var(--terrain);}
+.dot.red{background:var(--rough);}
+.dot.blue{background:var(--barrier);}
+.dot.apex{background:var(--apex);}
+.dot.vert{background:var(--vertical);}
+
+.c-wrap { position:relative; }
+
+#scene {
+  width:100%;
+  height:700px;
+  display:block;
+  cursor:grab;
+  transition: opacity 0.14s ease;
+}
+#scene:active { cursor:grabbing; }
+#scene.flash { opacity:0.25; }
+
+/* readout overlay */
+.readout {
+  position:absolute;
+  top:13px;left:13px;
+  width:230px;
+  background: rgba(6,11,22,0.9);
+  border: 1px solid rgba(56,189,248,0.22);
+  border-radius: 15px;
+  padding: 11px 13px;
+  backdrop-filter: blur(14px);
+  z-index:3;
+}
+
+.r-status {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 6px 10px;
+  border-radius:8px;
+  margin-bottom: 9px;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+.r-status.safe { background:var(--safe-d); border-color:rgba(52,211,153,0.28); }
+.r-status.unsafe { background:var(--danger-d); border-color:rgba(244,63,94,0.28); }
+
+.r-status-text {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 10.5px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.r-status.safe .r-status-text { color: var(--safe); }
+.r-status.unsafe .r-status-text { color: var(--danger); }
+
+.r-dot {
+  width:7px;height:7px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+.r-status.safe .r-dot { background:var(--safe); box-shadow:0 0 5px var(--safe); }
+.r-status.unsafe .r-dot { background:var(--danger); box-shadow:0 0 5px var(--danger); animation:pulse-dot 0.9s infinite; }
+
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.5)} }
+
+.r-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding: 3.5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  gap:6px;
+}
+.r-row:last-child { border-bottom:none; }
+.r-key { font-size:10.5px; color:var(--muted); flex:1; }
+.r-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size:11px;
+  font-weight:700;
+  color:var(--text);
+  text-align:right;
+  min-width:65px;
+  transition: color 0.3s;
+}
+
+/* camera buttons overlay */
+.cam-btns {
+  position:absolute;
+  top:13px;right:13px;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  z-index:3;
+}
+.cam-btn {
+  width:30px;height:30px;
+  background: rgba(6,11,22,0.88);
+  border: 1px solid rgba(255,255,255,0.11);
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  color:var(--muted);
+  font-size:13px;
+  transition: all 0.15s;
+  backdrop-filter:blur(8px);
+}
+.cam-btn:hover { background:var(--accent-d); border-color:var(--border-hi); color:var(--accent); }
+
+/* formula overlay */
+.formula {
+  position:absolute;
+  left:13px;bottom:13px;
+  max-width:500px;
+  background: rgba(6,11,22,0.9);
+  border: 1px solid rgba(56,189,248,0.17);
+  border-radius:13px;
+  padding:10px 13px;
+  backdrop-filter:blur(14px);
+  font-size:11.5px;
+  line-height:1.55;
+  color:var(--muted);
+}
+.formula strong {
+  display:block;
+  font-family:'Exo 2',sans-serif;
+  font-size:11.5px;
+  font-weight:700;
+  color:var(--accent);
+  margin-bottom:3px;
+  letter-spacing:0.04em;
+  text-transform:uppercase;
+}
+
+/* bottom strip */
+.c-foot {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 7px 14px 9px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  gap:10px;
+}
+.c-caption {
+  font-size:10.5px;
+  color:var(--muted);
+  line-height:1.45;
+}
+.c-caption b { color:rgba(255,255,255,0.38); font-weight:500; }
+.c-foot-hint {
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  color:rgba(255,255,255,0.2);
+  white-space:nowrap;
+  flex-shrink:0;
+}
+
+/* keyboard modal */
+.modal-bg {
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.72);
+  backdrop-filter:blur(5px);
+  z-index:999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.2s;
+}
+.modal-bg.open { opacity:1; pointer-events:all; }
+
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border-hi);
+  border-radius: 22px;
+  padding: 22px 26px;
+  width: min(460px,90vw);
+  transform: translateY(10px) scale(0.97);
+  transition: transform 0.22s ease;
+}
+.modal-bg.open .modal { transform: translateY(0) scale(1); }
+
+.modal-title {
+  font-family:'Exo 2',sans-serif;
+  font-size:15px;
+  font-weight:800;
+  color:#fff;
+  margin-bottom:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.modal-x {
+  width:26px;height:26px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:6px;
+  cursor:pointer;
+  color:var(--muted);
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;
+  transition:all 0.14s;
+}
+.modal-x:hover { background:var(--danger-d); border-color:var(--danger); color:var(--danger); }
+.kgrid {
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap: 5px 14px;
+  align-items:center;
+}
+.kg-section {
+  grid-column:1/-1;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9.5px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-top:10px;
+  margin-bottom:1px;
+  opacity:0.75;
+}
+.kkeys { display:flex; gap:3px; align-items:center; }
+.kdesc { font-size:11.5px; color:var(--muted); }
+
+/* responsive */
+@media(max-width:1100px){
+  .app{ grid-template-columns:1fr; }
+  .sidebar{ position:static; max-height:none; }
+  .legend{ justify-content:flex-start; }
+  #scene{ height:560px; }
+  .readout{ position:static; width:auto; border-radius:12px; margin:10px; }
+  .formula{ position:static; max-width:none; margin:10px; }
+  .cam-btns{ display:none; }
+}
+@media(max-width:600px){
+  body{ padding:10px; }
+  #scene{ height:420px; }
+  .c-header{ flex-direction:column; }
+  .legend{ display:none; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+
+    <div class="brand">
+      <h1>3D Barrier<br>Playground</h1>
+      <div class="brand-sub">
+        Vertical clearance: <b>r<sub>z</sub> − ρ<sub>z</sub></b>, where
+        ρ<sub>z</sub> depends on η = min(|r<sub>x</sub>|, |r<sub>y</sub>|).
+        Drag to orbit · scroll to zoom.
+      </div>
+    </div>
+
+    <!-- Stage stepper -->
+    <div class="stepper-card">
+      <div class="sec-label">Construction stage</div>
+      <div class="stepper">
+        <button class="step-btn active" data-stage="1">
+          <div class="step-num">1</div>
+          <div>
+            <div class="step-title">Red Terrain</div>
+            <div class="step-desc">Existing hazardous terrain sketch</div>
+          </div>
+        </button>
+        <button class="step-btn" data-stage="2">
+          <div class="step-num">2</div>
+          <div>
+            <div class="step-title">Step Approximation</div>
+            <div class="step-desc">Conservative 3-step terrain model</div>
+          </div>
+        </button>
+        <button class="step-btn" data-stage="3">
+          <div class="step-num">3</div>
+          <div>
+            <div class="step-title">Apex Shifting</div>
+            <div class="step-desc">Lower apex shifted by w_shift</div>
+          </div>
+        </button>
+        <button class="step-btn" data-stage="4">
+          <div class="step-num">4</div>
+          <div>
+            <div class="step-title">Barrier Surface</div>
+            <div class="step-desc">Full 3D horizontal safety sheet</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3D View -->
+    <div class="group-card" id="grp-view">
+      <div class="group-hdr" onclick="toggleGroup('grp-view')">
+        <span class="group-name">3D View</span>
+        <svg class="chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l4 4 4-4"/></svg>
+      </div>
+      <div class="group-body">
+        <div class="sl-row">
+          <div class="sl-lbl"><span class="sl-name">Yaw</span><span class="sl-val" id="yawVal">−38°</span></div>
+          <input id="yaw" type="range" min="-180" max="180" value="-38" step="1">
+        </div>
+        <div class="sl-row">
+          <div class="sl-lbl"><span class="sl-name">Pitch</span><span class="sl-val" id="pitchVal">24°</span></div>
+          <input id="pitch" type="range" min="-5" max="70" value="24" step="1">
+        </div>
+        <div class="sl-row">
+          <div class="sl-lbl"><span class="sl-name">Zoom</span><span class="sl-val" id="zoomVal">0.58</span></div>
+          <input id="zoom" type="range" min="0.35" max="1.15" value="0.58" step="0.01">
+        </div>
+      </div>
+    </div>
+
+    <!-- Lander Position -->
+    <div class="group-card" id="grp-lander">
+      <div class="group-hdr" onclick="toggleGroup('grp-lander')">
+        <span class="group-name">Lander Position</span>
+        <svg class="chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l4 4 4-4"/></svg>
+      </div>
+      <div class="group-body">
+        <div class="sl-row">
+          <div class="sl-lbl"><span class="sl-name">X position</span><span class="sl-val" id="xVal">360 m</span></div>
+          <input id="landerX" type="range" min="0" max="1250" value="360" step="10">
+        </div>
+        <div class="sl-row">
+          <div class="sl-lbl"><span class="sl-name">Y position</span><span class="sl-val" id="yVal">0 m</span></div>
+          <input id="landerY" type="range" min="-350" max="350" value="0" step="10">
+        </div>
+        <div class="sl-row">
+          <div class="sl-lbl"><span class="sl-name">Z altitude</span><span class="sl-val" id="zVal">900 m</span></div>
+          <input id="landerZ" type="range" min="-100" max="1700" value="900" step="10">
+        </div>
+      </div>
+    </div>
+
+    <!-- Parameters -->
+    <div class="group-card" id="grp-params">
+      <div class="group-hdr" onclick="toggleGroup('grp-params')">
+        <span class="group-name">Parameters</span>
+        <svg class="chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l4 4 4-4"/></svg>
+      </div>
+      <div class="group-body">
+        <div class="sl-row">
+          <div class="sl-lbl"><span class="sl-name">w_shift</span><span class="sl-val" id="shiftVal">150 m</span></div>
+          <input id="wShift" type="range" min="50" max="250" value="150" step="5">
+        </div>
+        <div class="sl-row">
+          <div class="sl-lbl"><span class="sl-name">alpha</span><span class="sl-val" id="alphaVal">0.05°</span></div>
+          <input id="alpha" type="range" min="0.05" max="8" value="0.05" step="0.05">
+        </div>
+      </div>
+    </div>
+
+    <!-- Show/Hide -->
+    <div class="group-card" id="grp-show">
+      <div class="group-hdr" onclick="toggleGroup('grp-show')">
+        <span class="group-name">Show / Hide</span>
+        <svg class="chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l4 4 4-4"/></svg>
+      </div>
+      <div class="group-body">
+        <label class="check-row"><input id="showRed" type="checkbox" checked><span>Red terrain sketch</span></label>
+        <label class="check-row"><input id="showSteps" type="checkbox" checked><span>Step blocks</span></label>
+        <label class="check-row"><input id="showBarrier" type="checkbox" checked><span>Blue barrier surface</span></label>
+        <label class="check-row"><input id="showApex" type="checkbox" checked><span>Apex construction</span></label>
+        <label class="check-row"><input id="showLander" type="checkbox" checked><span>Lander &amp; clearance</span></label>
+        <label class="check-row"><input id="showGrid" type="checkbox" checked><span>Ground grid</span></label>
+        <label class="check-row"><input id="showVertical" type="checkbox" checked><span>Vertical clearance r_z − ρ_z</span></label>
+        <label class="check-row"><input id="trueEta" type="checkbox"><span>True 3D η = min(|x|,|y|)</span></label>
+      </div>
+    </div>
+
+    <button class="kbd-hint" onclick="document.getElementById('kbdModal').classList.add('open')">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="6" width="20" height="13" rx="2"/>
+        <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h.01M12 14h.01M16 14h.01"/>
+      </svg>
+      <kbd>?</kbd> Keyboard shortcuts
+    </button>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+    <div class="canvas-card">
+      <div class="c-header">
+        <div>
+          <div class="stage-title" id="stageTitle">Stage 1: Existing terrain sketch</div>
+          <div class="stage-note" id="stageNote">The red terrain is the underlying hazardous terrain. It is kept below the conservative step approximation.</div>
+        </div>
+        <div class="legend">
+          <span class="pill"><span class="dot red"></span>existing terrain</span>
+          <span class="pill"><span class="dot terrain"></span>step approx</span>
+          <span class="pill"><span class="dot blue"></span>barrier</span>
+          <span class="pill"><span class="dot apex"></span>shifted apex</span>
+          <span class="pill"><span class="dot vert"></span>vertical Δ</span>
+        </div>
+      </div>
+
+      <div class="c-wrap">
+        <svg id="scene" viewBox="0 0 1000 720"></svg>
+
+        <!-- Live readout -->
+        <div class="readout">
+          <div class="r-status safe" id="statusBox">
+            <span class="r-status-text" id="statusRead">✓ SAFE</span>
+            <span class="r-dot"></span>
+          </div>
+          <div class="r-row"><span class="r-key">theta</span><span class="r-val" id="thetaRead">--</span></div>
+          <div class="r-row"><span class="r-key">z_shift</span><span class="r-val" id="zShiftRead">--</span></div>
+          <div class="r-row"><span class="r-key">eta for ρ_z</span><span class="r-val" id="etaRead">--</span></div>
+          <div class="r-row"><span class="r-key">ρ_i(z_land)</span><span class="r-val" id="rhoRead">--</span></div>
+          <div class="r-row"><span class="r-key">lateral clear.</span><span class="r-val" id="clearRead">--</span></div>
+          <div class="r-row"><span class="r-key">ρ_z(x,y)</span><span class="r-val" id="rhoZRead">--</span></div>
+          <div class="r-row"><span class="r-key">vertical clear.</span><span class="r-val" id="vClearRead">--</span></div>
+        </div>
+
+        <!-- Camera controls -->
+        <div class="cam-btns">
+          <button class="cam-btn" onclick="resetCamera()" title="Reset camera (R)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+            </svg>
+          </button>
+          <button class="cam-btn" onclick="changeZoom(0.06)" title="Zoom in (+)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/>
+            </svg>
+          </button>
+          <button class="cam-btn" onclick="changeZoom(-0.06)" title="Zoom out (-)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M8 11h6"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Formula box -->
+        <div class="formula" id="formulaBox">
+          <strong>Correct vertical clearance</strong>
+          Clearance is r<sub>z</sub> − ρ<sub>z</sub>, not r<sub>z</sub> minus the step roof.
+          In 2D-slice view η = |x|, so the barrier does not collapse when y = 0.
+        </div>
+      </div>
+
+      <div class="c-foot">
+        <div class="c-caption">
+          Steps: <b>(w1,h1)=(600,500)</b> · <b>(w2,h2)=(800,1000)</b> · <b>(w3,h3)=(1000,1200)</b>.
+          Green dashed = r<sub>z</sub> − ρ<sub>z</sub>.
+        </div>
+        <div class="c-foot-hint">Drag · Scroll · Keys 1–4</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── KEYBOARD SHORTCUTS MODAL ── -->
+<div class="modal-bg" id="kbdModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-title">
+      Keyboard Shortcuts
+      <button class="modal-x" onclick="document.getElementById('kbdModal').classList.remove('open')">×</button>
+    </div>
+    <div class="kgrid">
+      <div class="kg-section">Stages</div>
+      <div class="kkeys"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd></div>
+      <div class="kdesc">Switch construction stage</div>
+
+      <div class="kg-section">Camera</div>
+      <div class="kkeys"><kbd>←</kbd><kbd>→</kbd></div><div class="kdesc">Rotate yaw</div>
+      <div class="kkeys"><kbd>↑</kbd><kbd>↓</kbd></div><div class="kdesc">Adjust pitch</div>
+      <div class="kkeys"><kbd>+</kbd><kbd>−</kbd></div><div class="kdesc">Zoom in / out</div>
+      <div class="kkeys"><kbd>R</kbd></div><div class="kdesc">Reset camera to default</div>
+
+      <div class="kg-section">Lander</div>
+      <div class="kkeys"><kbd>W</kbd><kbd>S</kbd></div><div class="kdesc">Move X axis</div>
+      <div class="kkeys"><kbd>A</kbd><kbd>D</kbd></div><div class="kdesc">Move Y axis</div>
+      <div class="kkeys"><kbd>Q</kbd><kbd>E</kbd></div><div class="kdesc">Move Z (altitude)</div>
+
+      <div class="kg-section">Other</div>
+      <div class="kkeys"><kbd>?</kbd></div><div class="kdesc">Toggle this help</div>
+      <div class="kkeys"><kbd>Esc</kbd></div><div class="kdesc">Close dialog</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const svg = document.getElementById("scene");
+
+const controls = {
+  yaw:         document.getElementById("yaw"),
+  pitch:       document.getElementById("pitch"),
+  zoom:        document.getElementById("zoom"),
+  landerX:     document.getElementById("landerX"),
+  landerY:     document.getElementById("landerY"),
+  landerZ:     document.getElementById("landerZ"),
+  wShift:      document.getElementById("wShift"),
+  alpha:       document.getElementById("alpha"),
+  showRed:     document.getElementById("showRed"),
+  showSteps:   document.getElementById("showSteps"),
+  showBarrier: document.getElementById("showBarrier"),
+  showApex:    document.getElementById("showApex"),
+  showLander:  document.getElementById("showLander"),
+  showGrid:    document.getElementById("showGrid"),
+  showVertical:document.getElementById("showVertical"),
+  trueEta:     document.getElementById("trueEta")
+};
+
+const labels = {
+  yawVal:    document.getElementById("yawVal"),
+  pitchVal:  document.getElementById("pitchVal"),
+  zoomVal:   document.getElementById("zoomVal"),
+  xVal:      document.getElementById("xVal"),
+  yVal:      document.getElementById("yVal"),
+  zVal:      document.getElementById("zVal"),
+  shiftVal:  document.getElementById("shiftVal"),
+  alphaVal:  document.getElementById("alphaVal"),
+  thetaRead: document.getElementById("thetaRead"),
+  zShiftRead:document.getElementById("zShiftRead"),
+  etaRead:   document.getElementById("etaRead"),
+  rhoRead:   document.getElementById("rhoRead"),
+  clearRead: document.getElementById("clearRead"),
+  rhoZRead:  document.getElementById("rhoZRead"),
+  vClearRead:document.getElementById("vClearRead"),
+  statusRead:document.getElementById("statusRead"),
+  stageTitle:document.getElementById("stageTitle"),
+  stageNote: document.getElementById("stageNote"),
+  formulaBox:document.getElementById("formulaBox")
+};
+
+const P = {
+  h1:500, w1:600,
+  h2:1000, w2:800,
+  h3:1200, w3:1000,
+  xMax:1300, yHalf:320,
+  zMin:-260, zMax:1800
+};
+
+let stage = 1;
+let panX = 0, panY = 0;
+let dragging = false, lastMouse = null, lastTouch = null;
+
+function val(id){ return Number(controls[id].value); }
+function rad(deg){ return deg * Math.PI / 180; }
+
+function apexShift(){
+  const wShift = val("wShift");
+  const theta = Math.atan((P.w1 - wShift) / P.h1);
+  const zShift = wShift / Math.tan(theta);
+  return {theta, zShift};
+}
+
+function stepRoof(x){
+  if(x < P.w1) return 0;
+  if(x < P.w2) return P.h1;
+  if(x < P.w3) return P.h2;
+  return P.h3;
+}
+
+function etaValue(x, y){
+  if(controls.trueEta && controls.trueEta.checked)
+    return Math.min(Math.abs(x), Math.abs(y));
+  return Math.abs(x);
+}
+
+function rhoVertical(x, y){
+  const eta = etaValue(x, y);
+  const {zShift} = apexShift();
+  const alpha = rad(val("alpha"));
+  const beta2 = (P.h2 - P.h1) / (P.w2 - P.w1);
+  const beta3 = (P.h3 - P.h2) / (P.w3 - P.w2);
+  if(eta < P.w1) return (P.h1/P.w1)*eta - zShift;
+  else if(eta < P.w2) return beta2*(eta-P.w1)+P.h1;
+  else if(eta < P.w3) return beta3*(eta-P.w2)+P.h2;
+  else return Math.tan(alpha)*(eta-P.w3)+P.h3;
+}
+
+function roughTerrain(){
+  const raw = [
+    {x:600,z:0},{x:615,z:25},{x:635,z:45},{x:655,z:38},{x:675,z:70},
+    {x:695,z:95},{x:715,z:130},{x:740,z:170},{x:765,z:220},{x:790,z:285},
+    {x:805,z:430},{x:830,z:480},{x:855,z:660},{x:880,z:595},{x:905,z:760},
+    {x:930,z:870},{x:960,z:940},{x:985,z:900},{x:1005,z:1015},{x:1030,z:1110},
+    {x:1060,z:1080},{x:1090,z:1140},{x:1120,z:1125},{x:1160,z:1170},
+    {x:1210,z:1160},{x:1260,z:1180}
+  ];
+  const margin = 18;
+  return raw.map(p=>({x:p.x, z:Math.min(p.z, stepRoof(p.x)-margin)}));
+}
+
+function barrierPoints(){
+  const {zShift} = apexShift();
+  const wShift = val("wShift");
+  const alpha = rad(val("alpha"));
+  const xEnd = P.xMax;
+  const zEnd = P.h3 + Math.tan(alpha)*(xEnd-P.w3);
+  return [
+    {x:0,z:-zShift},{x:wShift,z:0},{x:P.w1,z:P.h1},
+    {x:P.w2,z:P.h2},{x:P.w3,z:P.h3},{x:xEnd,z:zEnd}
+  ];
+}
+
+function rhoHorizontal(z){
+  const {zShift} = apexShift();
+  const wShift = val("wShift");
+  if(z<=0){ const t=(z+zShift)/zShift; return t*wShift; }
+  if(z<=P.h1){ const t=z/P.h1; return wShift+t*(P.w1-wShift); }
+  if(z<=P.h2){ const t=(z-P.h1)/(P.h2-P.h1); return P.w1+t*(P.w2-P.w1); }
+  if(z<=P.h3){ const t=(z-P.h2)/(P.h3-P.h2); return P.w2+t*(P.w3-P.w2); }
+  const alpha = rad(val("alpha"));
+  return P.w3+(z-P.h3)/Math.tan(Math.max(alpha,1e-6));
+}
+
+function project(p){
+  let x=p.x-650, y=p.y||0, z=p.z||0;
+  const yaw=rad(val("yaw")), pitch=rad(val("pitch")), zoom=val("zoom");
+  const cy=Math.cos(yaw), sy=Math.sin(yaw);
+  let x1=cy*x-sy*y, y1=sy*x+cy*y;
+  const cp=Math.cos(pitch), sp=Math.sin(pitch);
+  let y2=cp*y1-sp*z, z2=sp*y1+cp*z;
+  const scale=zoom*0.78;
+  return {x:500+panX+x1*scale, y:555+panY-z2*scale, depth:y2};
+}
+
+function add(tag, attrs={}, parent=svg){
+  const el=document.createElementNS("http://www.w3.org/2000/svg",tag);
+  for(const [k,v] of Object.entries(attrs)) el.setAttribute(k,v);
+  parent.appendChild(el);
+  return el;
+}
+
+function poly(points, attrs={}){
+  const pts=points.map(p=>{const q=project(p);return `${q.x},${q.y}`;}).join(" ");
+  return add("polygon",{points:pts,fill:attrs.fill||"none",stroke:attrs.stroke||"none","stroke-width":attrs.width||1,opacity:attrs.opacity??1});
+}
+
+function line3(points, attrs={}){
+  const pts=points.map(p=>{const q=project(p);return `${q.x},${q.y}`;}).join(" ");
+  return add("polyline",{points:pts,fill:"none",stroke:attrs.stroke||"#fff","stroke-width":attrs.width||2,"stroke-dasharray":attrs.dash||"","stroke-linejoin":"round","stroke-linecap":"round",opacity:attrs.opacity??1});
+}
+
+function text3(p, str, attrs={}){
+  const q=project(p);
+  const t=add("text",{x:q.x,y:q.y,fill:attrs.fill||"#e6edf5","font-size":attrs.size||13,"font-weight":attrs.weight||700,"text-anchor":attrs.anchor||"middle","font-family":"'JetBrains Mono', monospace"});
+  t.textContent=str;
+  return t;
+}
+
+function circle3(p, r, attrs={}){
+  const q=project(p);
+  return add("circle",{cx:q.x,cy:q.y,r:r,fill:attrs.fill||"#fff",stroke:attrs.stroke||"none","stroke-width":attrs.width||1});
+}
+
+function drawGrid(){
+  const y0=-P.yHalf, y1=P.yHalf;
+  for(let x=0;x<=P.xMax;x+=100)
+    line3([{x,y:y0,z:0},{x,y:y1,z:0}],{stroke:"rgba(255,255,255,0.055)",width:1});
+  for(let y=y0;y<=y1;y+=80)
+    line3([{x:0,y,z:0},{x:P.xMax,y,z:0}],{stroke:"rgba(255,255,255,0.055)",width:1});
+  line3([{x:0,y:0,z:0},{x:P.xMax+80,y:0,z:0}],{stroke:"rgba(255,255,255,0.45)",width:1.6});
+  line3([{x:0,y:-P.yHalf-60,z:0},{x:0,y:P.yHalf+60,z:0}],{stroke:"rgba(255,255,255,0.35)",width:1.3});
+  line3([{x:0,y:0,z:P.zMin},{x:0,y:0,z:P.zMax}],{stroke:"rgba(255,255,255,0.45)",width:1.6});
+  text3({x:P.xMax+120,y:0,z:0},"i=(X,Y)",{size:13});
+  text3({x:0,y:0,z:P.zMax+80},"z",{size:16});
+  text3({x:-45,y:0,z:-30},"(0,0)",{size:13});
+}
+
+function drawBox(x0,x1,z0,z1,label){
+  const y0=-P.yHalf, y1=P.yHalf;
+  const faces=[
+    {pts:[{x:x0,y:y0,z:z0},{x:x1,y:y0,z:z0},{x:x1,y:y0,z:z1},{x:x0,y:y0,z:z1}],fill:"rgba(184,121,56,0.52)"},
+    {pts:[{x:x0,y:y1,z:z0},{x:x1,y:y1,z:z0},{x:x1,y:y1,z:z1},{x:x0,y:y1,z:z1}],fill:"rgba(184,121,56,0.58)"},
+    {pts:[{x:x0,y:y0,z:z1},{x:x1,y:y0,z:z1},{x:x1,y:y1,z:z1},{x:x0,y:y1,z:z1}],fill:"rgba(202,144,70,0.78)"},
+    {pts:[{x:x0,y:y0,z:z0},{x:x0,y:y1,z:z0},{x:x0,y:y1,z:z1},{x:x0,y:y0,z:z1}],fill:"rgba(150,95,45,0.72)"},
+    {pts:[{x:x1,y:y0,z:z0},{x:x1,y:y1,z:z0},{x:x1,y:y1,z:z1},{x:x1,y:y0,z:z1}],fill:"rgba(128,82,40,0.72)"}
+  ];
+  faces.forEach(f=>poly(f.pts,{fill:f.fill,stroke:"rgba(216,146,59,0.85)",width:1.2}));
+  const edges=[
+    [{x:x0,y:y0,z:z0},{x:x1,y:y0,z:z0},{x:x1,y:y0,z:z1},{x:x0,y:y0,z:z1},{x:x0,y:y0,z:z0}],
+    [{x:x0,y:y1,z:z0},{x:x1,y:y1,z:z0},{x:x1,y:y1,z:z1},{x:x0,y:y1,z:z1},{x:x0,y:y1,z:z0}],
+    [{x:x0,y:y0,z:z0},{x:x0,y:y1,z:z0}],[{x:x1,y:y0,z:z0},{x:x1,y:y1,z:z0}],
+    [{x:x1,y:y0,z:z1},{x:x1,y:y1,z:z1}],[{x:x0,y:y0,z:z1},{x:x0,y:y1,z:z1}]
+  ];
+  edges.forEach(e=>line3(e,{stroke:"rgba(216,146,59,0.9)",width:1.5}));
+  text3({x:(x0+x1)/2,y:0,z:z1+70},label,{fill:"#f5d6a7",size:13});
+}
+
+function drawSteps(){
+  drawBox(P.w1,P.w2,0,P.h1,"Step 1");
+  drawBox(P.w2,P.w3,0,P.h2,"Step 2");
+  drawBox(P.w3,P.xMax,0,P.h3,"Step 3");
+  text3({x:P.w1-25,y:P.yHalf+40,z:P.h1+70},"(w1,h1)",{size:12});
+  text3({x:P.w2-25,y:P.yHalf+40,z:P.h2+70},"(w2,h2)",{size:12});
+  text3({x:P.w3-25,y:P.yHalf+40,z:P.h3+70},"(w3,h3)",{size:12});
+}
+
+function drawRedTerrain(){
+  const pts=roughTerrain();
+  const yFront=P.yHalf+8, yBack=-P.yHalf-8;
+  for(let i=0;i<pts.length-1;i++){
+    poly([{x:pts[i].x,y:yFront,z:pts[i].z},{x:pts[i+1].x,y:yFront,z:pts[i+1].z},
+          {x:pts[i+1].x,y:yBack,z:pts[i+1].z},{x:pts[i].x,y:yBack,z:pts[i].z}],
+      {fill:"rgba(225,29,72,0.16)",stroke:"none"});
+  }
+  const front=pts.map(p=>({x:p.x,y:yFront,z:p.z}));
+  const back=pts.map(p=>({x:p.x,y:yBack,z:p.z}));
+  line3(front,{stroke:"#e11d48",width:2.4});
+  line3(back,{stroke:"#e11d48",width:2.4});
+  text3({x:1030,y:P.yHalf+45,z:1370},"existing terrain sketch",{fill:"#fb7185",size:12,anchor:"start"});
+}
+
+function drawBarrier(){
+  const pts=barrierPoints();
+  const yFront=P.yHalf+80, yBack=-P.yHalf-80;
+  for(let i=0;i<pts.length-1;i++){
+    poly([{x:pts[i].x,y:yFront,z:pts[i].z},{x:pts[i+1].x,y:yFront,z:pts[i+1].z},
+          {x:pts[i+1].x,y:yBack,z:pts[i+1].z},{x:pts[i].x,y:yBack,z:pts[i].z}],
+      {fill:"rgba(56,189,248,0.18)",stroke:"rgba(56,189,248,0.24)",width:1});
+  }
+  const front=pts.map(p=>({x:p.x,y:yFront,z:p.z}));
+  const back=pts.map(p=>({x:p.x,y:yBack,z:p.z}));
+  line3(front,{stroke:"rgba(56,189,248,0.25)",width:10});
+  line3(back,{stroke:"rgba(56,189,248,0.25)",width:10});
+  line3(front,{stroke:"#38bdf8",width:3.5});
+  line3(back,{stroke:"#38bdf8",width:3.5});
+  text3({x:1020,y:yFront+50,z:1510},"Barrier",{fill:"#7dd3fc",size:17});
+  text3({x:1100,y:yFront+50,z:1420},"horizontal barrier surface",{fill:"#e6edf5",size:12,anchor:"start"});
+}
+
+function drawApex(){
+  const {zShift}=apexShift();
+  const wShift=val("wShift");
+  const y=P.yHalf+95;
+  line3([{x:0,y,z:-zShift},{x:wShift,y,z:0}],{stroke:"rgba(125,211,252,0.75)",width:1.7,dash:"6 5"});
+  line3([{x:0,y,z:-zShift},{x:0,y,z:0}],{stroke:"rgba(125,211,252,0.60)",width:1.4,dash:"6 5"});
+  line3([{x:0,y,z:0},{x:wShift,y,z:0}],{stroke:"rgba(125,211,252,0.60)",width:1.4,dash:"6 5"});
+  circle3({x:wShift,y,z:0},5,{fill:"#fb7185"});
+  text3({x:wShift+70,y,z:55},"shifted apex",{fill:"#fecdd3",size:12,anchor:"start"});
+  text3({x:wShift/2,y,z:55},"w_shift",{fill:"#c4eaff",size:12});
+  text3({x:55,y,z:-zShift/2},"z_shift",{fill:"#c4eaff",size:12,anchor:"start"});
+}
+
+function drawVerticalClearance(x,y,z){
+  const rhoZ=rhoVertical(x,y);
+  line3([{x,y,z:rhoZ},{x,y,z}],{stroke:"#86efac",width:2,dash:"7 5"});
+  circle3({x,y,z:rhoZ},4,{fill:"#86efac"});
+  line3([{x:x-55,y,z:rhoZ},{x:x+55,y,z:rhoZ}],{stroke:"#86efac",width:2});
+  text3({x:x+65,y,z:rhoZ+35},"rho_z",{fill:"#86efac",size:11,anchor:"start"});
+  text3({x:x+55,y,z:(rhoZ+z)/2},"r_z - rho_z",{fill:"#86efac",size:11,anchor:"start"});
+}
+
+function drawLander(){
+  const x=val("landerX"),y=val("landerY"),z=val("landerZ");
+  const q=project({x,y,z});
+  const size=24*val("zoom");
+  const tri=`${q.x},${q.y-size*1.2} ${q.x-size},${q.y+size*0.8} ${q.x+size},${q.y+size*0.8}`;
+  add("polygon",{points:tri,fill:"#f8fafc",stroke:"#0f172a","stroke-width":1.5});
+  add("polygon",{points:`${q.x-7},${q.y+size*0.75} ${q.x},${q.y+size*1.8} ${q.x+7},${q.y+size*0.75}`,fill:"#f97316"});
+  text3({x:x+70,y,z:z+120},"lander",{size:12,anchor:"start"});
+  const rho=rhoHorizontal(z);
+  if(isFinite(rho)){
+    line3([{x,y,z},{x:rho,y,z}],{stroke:"#fef08a",width:2,dash:"7 5"});
+    text3({x:(x+rho)/2,y,z:z+55},"lateral clearance",{fill:"#fef08a",size:11});
+  }
+  if(controls.showVertical.checked) drawVerticalClearance(x,y,z);
+}
+
+function updateLabels(){
+  labels.yawVal.textContent   = `${val("yaw")}°`;
+  labels.pitchVal.textContent = `${val("pitch")}°`;
+  labels.zoomVal.textContent  = val("zoom").toFixed(2);
+  labels.xVal.textContent     = `${val("landerX")} m`;
+  labels.yVal.textContent     = `${val("landerY")} m`;
+  labels.zVal.textContent     = `${val("landerZ")} m`;
+  labels.shiftVal.textContent = `${val("wShift")} m`;
+  labels.alphaVal.textContent = `${val("alpha").toFixed(2)}°`;
+
+  const {theta,zShift}=apexShift();
+  labels.thetaRead.textContent  = `${(theta*180/Math.PI).toFixed(2)}°`;
+  labels.zShiftRead.textContent = `${zShift.toFixed(2)} m`;
+
+  const x=val("landerX"),y=val("landerY"),z=val("landerZ");
+  const eta=etaValue(x,y);
+  const rho=rhoHorizontal(z);
+  const clear=rho-x;
+  const rhoZ=rhoVertical(x,y);
+  const vClear=z-rhoZ;
+
+  labels.etaRead.textContent   = `${eta.toFixed(1)} m`;
+  labels.rhoRead.textContent   = isFinite(rho)?`${rho.toFixed(1)} m`:"--";
+  labels.clearRead.textContent = isFinite(clear)?`${clear.toFixed(1)} m`:"--";
+  labels.rhoZRead.textContent  = `${rhoZ.toFixed(1)} m`;
+  labels.vClearRead.textContent= `${vClear.toFixed(1)} m`;
+
+  const safe = clear>=0 && vClear>=0;
+  const box = document.getElementById("statusBox");
+  labels.statusRead.textContent = safe ? "✓  SAFE" : "⚠  UNSAFE";
+  box.className = `r-status ${safe?'safe':'unsafe'}`;
+
+  labels.clearRead.style.color  = isFinite(clear)?(clear>=0?"var(--safe)":"var(--danger)"):"var(--text)";
+  labels.vClearRead.style.color = vClear>=0?"var(--safe)":"var(--danger)";
+
+  if(stage===1){
+    labels.stageTitle.textContent="Stage 1: Existing terrain sketch";
+    labels.stageNote.textContent="The red terrain is the underlying hazardous terrain. It is kept below the conservative step approximation.";
+    labels.formulaBox.innerHTML='<strong>Correct vertical clearance</strong>Clearance is r<sub>z</sub> − ρ<sub>z</sub>, where ρ<sub>z</sub> is evaluated from the vertical-barrier formula. For the 2D slice, η = |x|.';
+  } else if(stage===2){
+    labels.stageTitle.textContent="Stage 2: Step-shaped terrain approximation";
+    labels.stageNote.textContent="The brown blocks approximate the terrain from above using three step heights.";
+    labels.formulaBox.innerHTML='<strong>Step approximation</strong>Terrain blocks remain for intuition. The green clearance measures to the vertical barrier height ρ<sub>z</sub>(η), not the step roof.';
+  } else if(stage===3){
+    labels.stageTitle.textContent="Stage 3: Apex shifting";
+    labels.stageNote.textContent="The lower apex is shifted by w_shift, inducing z_shift and preventing overlap with the landing site.";
+    labels.formulaBox.innerHTML='<strong>Apex shift</strong>θ = atan((w1 − w_shift)/h1), z_shift = w_shift/tan(θ). For η &lt; w1: ρ<sub>z</sub> = (h1/w1)η − z_shift.';
+  } else {
+    labels.stageTitle.textContent="Stage 4: 3D barrier surface";
+    labels.stageNote.textContent="The 2D horizontal barrier line is extruded along the second horizontal direction to form a 3D safety sheet.";
+    labels.formulaBox.innerHTML='<strong>Barrier surface</strong>The blue sheet shows the horizontal barrier. Green dashed = r<sub>z</sub> − ρ<sub>z</sub>. Default η = |x|; toggle true 3D η = min(|x|,|y|) via checkbox.';
+  }
+}
+
+function render(){
+  svg.innerHTML="";
+  updateLabels();
+  if(controls.showGrid.checked)    drawGrid();
+  if(stage>=2 && controls.showSteps.checked)   drawSteps();
+  if(stage>=1 && controls.showRed.checked)     drawRedTerrain();
+  if(stage>=3 && controls.showApex.checked)    drawApex();
+  if(stage>=4 && controls.showBarrier.checked) drawBarrier();
+  if(controls.showLander.checked)  drawLander();
+}
+
+// Stage switching
+function setStage(n){
+  stage=n;
+  document.querySelectorAll(".step-btn").forEach(b=>{
+    b.classList.toggle("active", Number(b.dataset.stage)===n);
+  });
+  svg.classList.add("flash");
+  setTimeout(()=>svg.classList.remove("flash"),140);
+  render();
+}
+document.querySelectorAll(".step-btn").forEach(b=>{
+  b.addEventListener("click",()=>setStage(Number(b.dataset.stage)));
+});
+
+// Collapsible groups
+function toggleGroup(id){
+  const card=document.getElementById(id);
+  const body=card.querySelector(".group-body");
+  const isOpen=!card.classList.contains("closed");
+  if(isOpen){
+    body.style.maxHeight=body.scrollHeight+"px";
+    requestAnimationFrame(()=>{ body.style.maxHeight="0"; });
+    card.classList.add("closed");
+  } else {
+    card.classList.remove("closed");
+    body.style.maxHeight="0";
+    requestAnimationFrame(()=>{ body.style.maxHeight=body.scrollHeight+"px"; });
+    setTimeout(()=>{ if(!card.classList.contains("closed")) body.style.maxHeight="none"; },320);
+  }
+}
+document.querySelectorAll(".group-body").forEach(b=>{ b.style.maxHeight="none"; });
+
+// Sliders & checkboxes
+Object.values(controls).forEach(el=>{
+  el.addEventListener("input",render);
+  el.addEventListener("change",render);
+});
+
+// Camera helpers
+function resetCamera(){
+  controls.yaw.value="-38";
+  controls.pitch.value="24";
+  controls.zoom.value="0.58";
+  panX=0; panY=0;
+  render();
+}
+
+function changeZoom(delta){
+  controls.zoom.value=Math.max(0.35,Math.min(1.15,val("zoom")+delta)).toFixed(2);
+  render();
+}
+
+// Mouse orbit
+svg.addEventListener("mousedown",e=>{ dragging=true; lastMouse={x:e.clientX,y:e.clientY}; });
+window.addEventListener("mouseup",()=>dragging=false);
+window.addEventListener("mousemove",e=>{
+  if(!dragging) return;
+  const dx=e.clientX-lastMouse.x, dy=e.clientY-lastMouse.y;
+  controls.yaw.value=Math.max(-180,Math.min(180,val("yaw")+dx*0.45));
+  controls.pitch.value=Math.max(-5,Math.min(70,val("pitch")-dy*0.25));
+  lastMouse={x:e.clientX,y:e.clientY};
+  render();
+});
+
+// Touch orbit
+svg.addEventListener("touchstart",e=>{
+  if(e.touches.length===1){ lastTouch={x:e.touches[0].clientX,y:e.touches[0].clientY}; e.preventDefault(); }
+},{passive:false});
+svg.addEventListener("touchmove",e=>{
+  if(e.touches.length===1 && lastTouch){
+    const dx=e.touches[0].clientX-lastTouch.x, dy=e.touches[0].clientY-lastTouch.y;
+    controls.yaw.value=Math.max(-180,Math.min(180,val("yaw")+dx*0.45));
+    controls.pitch.value=Math.max(-5,Math.min(70,val("pitch")-dy*0.25));
+    lastTouch={x:e.touches[0].clientX,y:e.touches[0].clientY};
+    render(); e.preventDefault();
+  }
+},{passive:false});
+
+// Scroll zoom
+svg.addEventListener("wheel",e=>{ e.preventDefault(); changeZoom(-e.deltaY*0.001); },{passive:false});
+
+// Keyboard shortcuts
+window.addEventListener("keydown",e=>{
+  if(e.target.tagName==="INPUT") return;
+  const modal=document.getElementById("kbdModal");
+  switch(e.key){
+    case "1":case "2":case "3":case "4": setStage(Number(e.key)); break;
+    case "ArrowLeft":  controls.yaw.value=Math.max(-180,val("yaw")-3); render(); break;
+    case "ArrowRight": controls.yaw.value=Math.min(180,val("yaw")+3); render(); break;
+    case "ArrowUp":    controls.pitch.value=Math.min(70,val("pitch")+2); render(); break;
+    case "ArrowDown":  controls.pitch.value=Math.max(-5,val("pitch")-2); render(); break;
+    case "+":case "=": changeZoom(0.04); break;
+    case "-":          changeZoom(-0.04); break;
+    case "r":case "R": resetCamera(); break;
+    case "w":case "W": controls.landerX.value=Math.min(1250,val("landerX")+20); render(); break;
+    case "s":case "S": controls.landerX.value=Math.max(0,val("landerX")-20); render(); break;
+    case "a":case "A": controls.landerY.value=Math.max(-350,val("landerY")-20); render(); break;
+    case "d":case "D": controls.landerY.value=Math.min(350,val("landerY")+20); render(); break;
+    case "q":case "Q": controls.landerZ.value=Math.min(1700,val("landerZ")+20); render(); break;
+    case "e":case "E": controls.landerZ.value=Math.max(-100,val("landerZ")-20); render(); break;
+    case "?": modal.classList.toggle("open"); break;
+    case "Escape": modal.classList.remove("open"); break;
+  }
+});
+
+render();
+</script>
+</body>
+</html>
