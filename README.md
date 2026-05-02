@@ -1,7 +1,7 @@
 <<<<<<< HEAD
 # Fuel-Efficient Free-Final-Time Guidance for Terrain-Avoided Precision Soft Landing
 
-> **Barad, Abhishek, and Satadal Ghosh.**
+> **Abhishek Barad and Satadal Ghosh.**
 > "A Fuel-Efficient Free-Final-Time Guidance for Terrain-Avoided Precision Soft Landing of Spacecraft."
 > *2025 IEEE 64th Conference on Decision and Control (CDC).* IEEE, 2025.
 > DOI: [10.1109/CDC57313.2025.11313021](https://doi.org/10.1109/CDC57313.2025.11313021)
