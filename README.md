@@ -30,7 +30,7 @@ The animation shows three spacecraft landing trajectories (Cases 1–3) in the X
 @inproceedings{barad2025fuel,
   title     = {A Fuel-Efficient Free-Final-Time Guidance for Terrain-Avoided Precision Soft Landing of Spacecraft},
   author    = {Barad, Abhishek and Ghosh, Satadal},
-  booktitle = {2025 IEEE 64th Conference on Decision and Control (CDC)},
+  conference title = {IEEE 64th Conference on Decision and Control (CDC)},
   year      = {2025},
   publisher = {IEEE},
   doi       = {10.1109/CDC57313.2025.11313021},
@@ -39,5 +39,5 @@ The animation shows three spacecraft landing trajectories (Cases 1–3) in the X
 ```
 =======
 # fuel-efficient-guidance-terrain-avoided-landing
-Interactive playground for barrier generation over a terrain: Barad, Abhishek, and Satadal Ghosh. "A Fuel-Efficient Free-Final-Time Guidance for Terrain-Avoided Precision Soft Landing of Spacecraft." 2025 IEEE 64th CDC. DOI: 10.1109/CDC57313.2025.11313021
+Interactive playground for barrier generation over a terrain: Abhishek Barad and Satadal Ghosh. "A Fuel-Efficient Free-Final-Time Guidance for Terrain-Avoided Precision Soft Landing of Spacecraft." 2025 IEEE 64th CDC. DOI: 10.1109/CDC57313.2025.11313021
 >>>>>>> db3019084fdef27dd7bbff54ea63331a2f054c00
