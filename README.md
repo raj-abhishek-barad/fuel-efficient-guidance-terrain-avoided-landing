@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Fuel-Efficient Free-Final-Time Guidance for Terrain-Avoided Precision Soft Landing
 
 > **Abhishek Barad and Satadal Ghosh.**
@@ -20,7 +19,7 @@ Open [`3D_barrier_generation_playground.html`](./3D_barrier_generation_playgroun
 
 ## 🎬 Simulation Animation
 
-![ISRO Project Animation](isro_proj_animation.gif)
+![Soft Landing Trajectories Animation](isro_proj_animation.gif)
 
 The animation shows three spacecraft landing trajectories (Cases 1–3) in the X-Z and Y-Z planes, each starting from different initial positions and velocities under the proposed fuel-efficient guidance law.
 
