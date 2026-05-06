@@ -1,0 +1,46 @@
+MIT License
+
+Copyright (c) 2025 Abhishek Barad 
+Aerospace Engineering Department, Indian Institute of Technology Madras
+Contact: ae23s022@smail.iitm.ac.in . abhishekbarad403@gmail.com
+This software is the implementation companion to the following peer-reviewed publication:
+
+    Barad, Abhishek, and Satadal Ghosh.
+    "A Fuel-Efficient Free-Final-Time Guidance for Terrain-Avoided Precision
+    Soft Landing of Spacecraft."
+    2025 IEEE 64th Conference on Decision and Control (CDC). IEEE, 2025.
+    DOI: 10.1109/CDC57313.2025.11313021
+    URL: https://doi.org/10.1109/CDC57313.2025.11313021
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+1. The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+2. Any academic work, publication, presentation, or derivative work that uses,
+   builds upon, or is inspired by this Software or the methods described
+   therein must cite the paper listed above using the following BibTeX entry:
+
+       @inproceedings{barad2025fuel,
+         title     = {A Fuel-Efficient Free-Final-Time Guidance for
+                      Terrain-Avoided Precision Soft Landing of Spacecraft},
+         author    = {Barad, Abhishek and Ghosh, Satadal},
+         booktitle = {2025 IEEE 64th Conference on Decision and Control (CDC)},
+         year      = {2025},
+         publisher = {IEEE},
+         doi       = {10.1109/CDC57313.2025.11313021},
+         url       = {https://doi.org/10.1109/CDC57313.2025.11313021}
+       }
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
